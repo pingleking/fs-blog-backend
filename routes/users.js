@@ -6,6 +6,7 @@ router.get('/', async (req, res) => {
   const users = await User.findAll({
     include: {
       model: Blog,
+      as: 'blogs',
       attributes: {
         exclude: ['userId']
       }
@@ -24,7 +25,21 @@ router.post('/', async (req, res, next) => {
 })
 
 router.get('/:id', async (req, res) => {
-  const user = await User.findByPk(req.params.id)
+  const where = {}
+  if (req.query.read) {
+    where.read = req.query.read
+  }
+  const user = await User.findByPk(req.params.id, {
+    include: {
+      model: Blog,
+      as: 'readings',
+      attributes: { exclude: ['userId']},
+      through: {
+        attributes: ['id', 'read'],
+        where
+      }
+    }
+  })
   if (user) {
     res.json(user)
   } else {

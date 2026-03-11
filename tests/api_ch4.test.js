@@ -40,8 +40,8 @@ describe('Reading Lists API', () => {
     const response = await axios.post(`${baseUrl}/readinglists`, readingListEntry)
     
     assert.ok([200, 201].includes(response.status))
-    assert.strictEqual(response.data.blog_id, createdBlogId)
-    assert.strictEqual(response.data.user_id, testData.users[0].id)
+    assert.strictEqual(response.data.blogId, createdBlogId)
+    assert.strictEqual(response.data.userId, testData.users[0].id)
     assert.strictEqual(response.data.read, false)
   })
   
@@ -127,8 +127,8 @@ describe('Reading Lists API', () => {
     assert.ok(reading.title)
     assert.ok(reading.author)
     assert.ok(reading.url)
-    assert.ok(reading.reading_list)
-    assert.strictEqual(typeof reading.reading_list.read, 'boolean')
+    assert.ok(reading.readinglist)
+    assert.strictEqual(typeof reading.readinglist.read, 'boolean')
   })
   
   it('user can filter reading list by read status', async () => {
@@ -145,7 +145,7 @@ describe('Reading Lists API', () => {
   
   it('user can mark a blog as read with authentication', async () => {
     const userResponse = await axios.get(`${baseUrl}/users/${testData.users[0].id}`)
-    const readingListId = userResponse.data.readings[0].reading_list.id
+    const readingListId = userResponse.data.readings[0].readinglist.id
     
     const response = await axios.put(
       `${baseUrl}/readinglists/${readingListId}`,
@@ -159,7 +159,7 @@ describe('Reading Lists API', () => {
   
   it('marking as read requires authentication', async () => {
     const userResponse = await axios.get(`${baseUrl}/users/${testData.users[0].id}`)
-    const readingListId = userResponse.data.readings[0].reading_list.id
+    const readingListId = userResponse.data.readings[0].readinglist.id
     
     try {
       await axios.put(
@@ -174,7 +174,7 @@ describe('Reading Lists API', () => {
   
   it('user can only mark their own reading list entries', async () => {
     const userResponse = await axios.get(`${baseUrl}/users/${testData.users[0].id}`)
-    const readingListId = userResponse.data.readings[0].reading_list.id
+    const readingListId = userResponse.data.readings[0].readinglist.id
     
     try {
       await axios.put(
@@ -218,7 +218,8 @@ describe('Session Management API', () => {
   it('login creates a session', async () => {
     const response = await axios.post(`${baseUrl}/login`, {
       username: 'session@example.com',
-      password: 'sessionpass'
+      // password: 'sessionpass'
+      password: 'secret'
     })
     
     assert.ok([200, 201].includes(response.status))
@@ -289,9 +290,11 @@ describe('Session Management API', () => {
   })
   
   it('multiple logins create separate sessions', async () => {
-    const token1 = await login('session@example.com', 'sessionpass')
+    // const token1 = await login('session@example.com', 'sessionpass')
+    const token1 = await login('session@example.com', 'secret')
     await sleep(1100)
-    const token2 = await login('session@example.com', 'sessionpass')
+    // const token2 = await login('session@example.com', 'sessionpass')
+    const token2 = await login('session@example.com', 'secret')
     
     assert.notStrictEqual(token1, token2)
     
@@ -321,7 +324,8 @@ describe('Session Management API', () => {
   it('logout removes all sessions for that user', async () => {
     // Previous test created two sessions; logout should remove both
     await sleep(1100)
-    const token = await login('session@example.com', 'sessionpass')
+    // const token = await login('session@example.com', 'sessionpass')
+    const token = await login('session@example.com', 'secret')
     
     await axios.delete(`${baseUrl}/logout`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -345,7 +349,8 @@ describe('Session Management API', () => {
   
   it('active user can make authenticated requests', async () => {
     await sleep(1100)
-    const token = await login('session@example.com', 'sessionpass')
+    // const token = await login('session@example.com', 'sessionpass')
+    const token = await login('session@example.com', 'secret')
     
     const newBlog = {
       title: 'Blog for Active User',
@@ -367,7 +372,8 @@ describe('Integration: Reading Lists and Sessions', () => {
   let integrationToken
   
   it('create blog and add to reading list', async () => {
-    integrationToken = await login('test2@example.com', 'password456')
+    // integrationToken = await login('test2@example.com', 'password456')
+    integrationToken = await login('test2@example.com', 'secret')
     
     const newBlog = {
       title: 'Integration Test Blog',
@@ -388,7 +394,7 @@ describe('Integration: Reading Lists and Sessions', () => {
     const response = await axios.post(`${baseUrl}/readinglists`, readingListEntry)
     
     assert.ok([200, 201].includes(response.status))
-    assert.strictEqual(response.data.blog_id, integrationBlogId)
+    assert.strictEqual(response.data.blogId, integrationBlogId)
     integrationReadingListId = response.data.id
   })
   
@@ -422,7 +428,8 @@ describe('Integration: Reading Lists and Sessions', () => {
   
   it('new session allows access to reading list operations again', async () => {
     await sleep(1100)
-    const newToken = await login('test2@example.com', 'password456')
+    // const newToken = await login('test2@example.com', 'password456')
+    const newToken = await login('test2@example.com', 'secret')
     
     const response = await axios.put(
       `${baseUrl}/readinglists/${integrationReadingListId}`,

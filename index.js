@@ -6,8 +6,6 @@ const start = async () => {
   try {
     await connectToDatabase()
 
-    await sequelize.sync()
-
     app.listen(config.PORT, () => {
       console.log(`Server running on port ${config.PORT}`)
     })
